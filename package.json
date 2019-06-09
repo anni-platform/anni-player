@@ -8,7 +8,7 @@
     "dev-demo": "parcel index.html",
     "dev-lib": "rollup -c -w",
     "build": "rollup -c",
-    "predeploy": "npm run build && parcel build index.html --public-url ./",
+    "predeploy": "rimraf dist/* && npm run build && BASE_PATH=/anni-player parcel build index.html --public-url https://anni.io/anni-player/",
     "deploy": "gh-pages -d dist",
     "test": "jest",
     "lint": "eslint --fix src/* && echo 'Lint complete.'"
@@ -17,7 +17,6 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "babel-polyfill": "^6.26.0",
     "react": "^16.8.6"
   },
   "devDependencies": {
@@ -30,6 +29,7 @@
     "babel-eslint": "^10.0.1",
     "babel-jest": "^24.8.0",
     "babel-plugin-transform-runtime": "^6.23.0",
+    "babel-polyfill": "^6.26.0",
     "concurrently": "^4.1.0",
     "eslint": "^5.16.0",
     "eslint-config-prettier": "^4.3.0",
@@ -42,6 +42,7 @@
     "parcel-bundler": "^1.12.3",
     "prettier": "^1.18.2",
     "react-dom": "^16.8.6",
+    "rimraf": "^2.6.3",
     "rollup": "^1.1.2",
     "rollup-plugin-babel": "^4.3.2"
   },

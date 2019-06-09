@@ -16,8 +16,9 @@ const reducer = (state, action) => ({ ...state,
   ...action
 });
 
-function extractFrameIndexFromPath(framePath) {
+function extractFrameIndexFromPath(frameUrl) {
   try {
+    const framePath = frameUrl.split('/').pop();
     const [fileName] = framePath.split('.');
     const result = /([^._-])*\d/.exec(fileName);
     const [frameIndex] = result;

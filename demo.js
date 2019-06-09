@@ -60,11 +60,11 @@ function App() {
   return (
     <div>
       <nav>
-        <Link to="/">home</Link>&nbsp;
-        <Link to="/magic">Magic</Link>
+        <Link to={process.env.BASE_PATH || '/'}>home</Link>&nbsp;
+        <Link to={`${process.env.BASE_PATH || '/'}magic`}>Magic</Link>
       </nav>
-      <Router>
-        <DemoA path="/" frames={groundWorkFrames} />
+      <Router basePath={process.env.BASE_PATH}>
+        <DemoA path={process.env.BASE_PATH || '/'} frames={groundWorkFrames} />
         <DemoB path="/magic" frames={magicFrames} />
       </Router>
     </div>

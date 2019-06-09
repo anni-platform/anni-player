@@ -15,15 +15,16 @@ const reducer = (state, action) => ({
   ...action
 });
 
-function extractFrameIndexFromPath(framePath) {
+export function extractFrameIndexFromPath(frameUrl) {
   try {
+    const framePath = frameUrl.split('/').pop();
     const [fileName] = framePath.split('.');
-    const result = /([^._-])*\d/.exec(fileName);
+    const result = /\d+/.exec(fileName);
     const [frameIndex] = result;
     if (!frameIndex) {
       throw Error();
     }
-    return frameIndex;
+    return parseInt(frameIndex, 10);
   } catch (e) {
     // eslint-disable-next-line no-console
     console.error(`${framePath} does not contain a valid frame index`);
@@ -126,6 +127,7 @@ export default function useCanvasScrubber({ fps = DEFAULT_FPS, frames = [] }) {
   return {
     ...state,
     canvasRef,
-    togglePlay
+    togglePlay,
+    sortedFrames,
   };
 }
