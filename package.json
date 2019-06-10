@@ -3,6 +3,7 @@
   "version": "0.0.1",
   "description": "",
   "main": "index.js",
+  "module": "index.esm.js",
   "scripts": {
     "start": "concurrently \"npm:dev-*\"",
     "dev-demo": "parcel index.html",
@@ -44,7 +45,8 @@
     "react-dom": "^16.8.6",
     "rimraf": "^2.6.3",
     "rollup": "^1.1.2",
-    "rollup-plugin-babel": "^4.3.2"
+    "rollup-plugin-babel": "^4.3.2",
+    "rollup-plugin-terser": "^5.0.0"
   },
   "jest": {
     "verbose": true

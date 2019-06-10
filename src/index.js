@@ -19,15 +19,14 @@ export function extractFrameIndexFromPath(frameUrl) {
   try {
     const framePath = frameUrl.split('/').pop();
     const [fileName] = framePath.split('.');
-    const result = /\d+/.exec(fileName);
-    const [frameIndex] = result;
+    const [frameIndex] = /\d+/.exec(fileName);
     if (!frameIndex) {
       throw Error();
     }
     return parseInt(frameIndex, 10);
   } catch (e) {
     // eslint-disable-next-line no-console
-    console.error(`${framePath} does not contain a valid frame index`);
+    console.error(`"${frameUrl}" does not contain a valid frame index`);
   }
 }
 
