@@ -11,7 +11,7 @@ const groundWorkFrames = Object.values(groundWorkFramesMap);
 const magicFrames = Object.values(magicFramesMap);
 
 const canvasStyle = {
-  maxWidth: '100%'
+  maxWidth: '100%',
 };
 
 function CanvasContainer({ children }) {
@@ -19,18 +19,19 @@ function CanvasContainer({ children }) {
 }
 
 CanvasContainer.propTypes = {
-  children: PropTypes.node
+  children: PropTypes.node,
 };
 
 const buttonStyle = {
   padding: 16,
   background: 'limegreen',
-  fontSize: 24
+  fontSize: 24,
 };
 
-function Player({ frames }) {
+function Player({ frames, playerId }) {
   const { canvasRef, togglePlay, isPlaying } = useCanvasScrubber({
-    frames
+    frames,
+    playerId,
   });
   return (
     <CanvasContainer>
@@ -44,28 +45,29 @@ function Player({ frames }) {
   );
 }
 
-function DemoA({ frames }) {
-  return <Player frames={frames} />;
-}
-
-function DemoB({ frames }) {
-  return <Player frames={frames} />;
-}
-
 Player.propTypes = {
-  frames: PropTypes.arrayOf(PropTypes.string)
+  frames: PropTypes.arrayOf(PropTypes.string),
+  playerId: PropTypes.string,
 };
+
+function DemoA(props) {
+  return <Player {...props} />;
+}
+
+function DemoB(props) {
+  return <Player {...props} />;
+}
 
 function App() {
   return (
     <div>
       <nav>
-        <Link to={process.env.BASE_PATH || '/'}>home</Link>&nbsp;
-        <Link to={`${process.env.BASE_PATH || '/'}magic`}>Magic</Link>
+        <Link to="/">home</Link>&nbsp;
+        <Link to="magic">Magic</Link>
       </nav>
-      <Router basePath={process.env.BASE_PATH}>
-        <DemoA path={process.env.BASE_PATH || '/'} frames={groundWorkFrames} />
-        <DemoB path="/magic" frames={magicFrames} />
+      <Router basepath={process.env.BASE_PATH || '/'}>
+        <DemoA path="/" frames={groundWorkFrames} playerId="groundwork" />
+        <DemoB path="magic" frames={magicFrames} playerId="magic" />
       </Router>
     </div>
   );

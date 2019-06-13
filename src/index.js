@@ -1,18 +1,18 @@
-import { useReducer, useRef, useEffect, useMemo } from 'react';
+import { useReducer, useRef, useCallback, useEffect, useMemo } from 'react';
 
 const DEFAULT_FPS = 24;
 
 const preloadImagePromise = src =>
   new Promise((resolve, reject) => {
     const img = new Image();
-    img.onload = () => resolve(img);
+    img.onload = () => resolve({ [src]: img });
     img.onerror = e => reject(e);
     img.src = src;
   });
 
 const reducer = (state, action) => ({
   ...state,
-  ...action
+  ...action,
 });
 
 export function extractFrameIndexFromPath(frameUrl) {
@@ -36,62 +36,80 @@ function sortFramesAscending(frameA, frameB) {
   return indexA - indexB;
 }
 
-export default function useCanvasScrubber({ fps = DEFAULT_FPS, frames = [] }) {
+function getPlayerInitialFrameIndex(key) {
+  try {
+    return parseInt(sessionStorage.getItem(key)) || 0;
+  } catch (e) {
+    return 0;
+  }
+}
+
+export default function useCanvasScrubber({
+  playerId = 'anni-player',
+  fps = DEFAULT_FPS,
+  frames = [],
+}) {
   const sortedFrames = useMemo(() => frames.sort(sortFramesAscending), [
-    frames
+    frames,
   ]);
-  const currentFrame = useRef(null);
+  const images = useRef(null);
+  const currentFrame = useRef(getPlayerInitialFrameIndex(playerId));
   const nextTickRAF = useRef();
   const canvasRef = useRef(null);
   const [state, setState] = useReducer(reducer, {
-    currentFrame: 0,
     isPlaying: false,
-    htmlImageElements: []
+    htmlImageElements: [],
   });
 
-  const { isPlaying, htmlImageElements } = state;
+  const { isPlaying } = state;
 
-  function drawFrame(img) {
-    if (!img || !canvasRef.current) return;
-    canvasRef.current.width = img.width;
-    canvasRef.current.height = img.height;
-    canvasRef.current
-      .getContext('2d')
-      .drawImage(img, 0, 0, img.width, img.height, 0, 0, img.width, img.height);
-  }
+  const drawFrame = useCallback(
+    index => {
+      if (!sortedFrames[index] || !canvasRef.current) return;
+
+      const frameImage = images.current[sortedFrames[index]];
+      const { width, height } = frameImage;
+      const canvas = canvasRef.current;
+      canvas.width = width;
+      canvas.height = height;
+      canvas
+        .getContext('2d')
+        .drawImage(frameImage, 0, 0, width, height, 0, 0, width, height);
+    },
+    [sortedFrames, canvasRef, images],
+  );
 
   useEffect(() => {
-    if (!canvasRef) return;
+    if (!canvasRef.current) return;
     async function load() {
-      const htmlImages = await Promise.all(
-        sortedFrames.map(f => preloadImagePromise(f))
+      const loadedImages = await Promise.all(
+        sortedFrames.map(f => preloadImagePromise(f)),
       );
 
-      if (!htmlImages || htmlImages.length === 0) return;
-
-      const { width, height } = htmlImages[0];
+      if (!loadedImages || loadedImages.length === 0) return;
+      images.current = loadedImages.reduce((acc, i) => ({ ...acc, ...i }), {});
+      const currentFrameImage = images.current[sortedFrames[0]];
+      if (!currentFrameImage) return;
+      const { width, height } = currentFrameImage;
       setState({
-        htmlImageElements: htmlImages,
         frameSize: {
           width,
-          height
-        }
+          height,
+        },
       });
-      drawFrame(htmlImages[0]);
+      drawFrame(currentFrame.current);
     }
     load();
-  }, [frames, canvasRef, sortedFrames]);
+  }, [frames, canvasRef, sortedFrames, drawFrame]);
 
   useEffect(() => {
     if (isPlaying) {
-      if (!state.isPlaying) return;
-
       let then = performance.now();
       let now;
       let delta;
 
       const nextTick = () => {
-        if (!state.isPlaying) return;
+        if (!isPlaying) return;
 
         now = performance.now();
         delta = now - then;
@@ -105,7 +123,7 @@ export default function useCanvasScrubber({ fps = DEFAULT_FPS, frames = [] }) {
             frameIndex === frames.length - 1 ? 0 : frameIndex + 1;
 
           // Draw Canvas
-          drawFrame(htmlImageElements[currentFrame.current]);
+          drawFrame(currentFrame.current);
         }
 
         nextTickRAF.current = requestAnimationFrame(nextTick);
@@ -116,10 +134,18 @@ export default function useCanvasScrubber({ fps = DEFAULT_FPS, frames = [] }) {
     } else if (nextTickRAF.current) {
       cancelAnimationFrame(nextTickRAF.current);
     }
-  }, [fps, frames.length, htmlImageElements, isPlaying, state.isPlaying]);
+
+    return () => {
+      if (nextTickRAF.current) {
+        cancelAnimationFrame(nextTickRAF.current);
+      }
+      sessionStorage.setItem(playerId, currentFrame.current);
+    };
+  }, [fps, frames, images, drawFrame, playerId, isPlaying]);
 
   function togglePlay() {
-    const nextIsPlaying = htmlImageElements.length > 0 && !isPlaying;
+    const nextIsPlaying =
+      images.current && Object.keys(images.current).length > 0 && !isPlaying;
     setState({ isPlaying: nextIsPlaying });
   }
 
