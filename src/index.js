@@ -1,4 +1,5 @@
 import { useReducer, useRef, useCallback, useEffect, useMemo } from 'react';
+import useKey from 'react-use/lib/useKey';
 
 const DEFAULT_FPS = 24;
 
@@ -148,6 +149,31 @@ export default function useCanvasScrubber({
       images.current && Object.keys(images.current).length > 0 && !isPlaying;
     setState({ isPlaying: nextIsPlaying });
   }
+
+  function seek(index) {
+    setState({ isPlaying: false });
+    currentFrame.current = index;
+    // Draw Canvas
+    drawFrame(index);
+  }
+
+  function seekNext() {
+    const frameIndex = currentFrame.current;
+    const nextIndex = frameIndex === frames.length - 1 ? 0 : frameIndex + 1;
+
+    seek(nextIndex);
+  }
+
+  function seekPrev() {
+    const frameIndex = currentFrame.current;
+    const nextIndex = frameIndex === 0 ? frames.length - 1 : frameIndex - 1;
+
+    seek(nextIndex);
+  }
+
+  useKey(e => e.code === 'Space', togglePlay);
+  useKey(e => e.code === 'ArrowRight', seekNext);
+  useKey(e => e.code === 'ArrowLeft', seekPrev);
 
   return {
     ...state,

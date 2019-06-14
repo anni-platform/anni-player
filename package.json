@@ -23,7 +23,8 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "react": "^16.8.6"
+    "react": "^16.8.6",
+    "react-use": "^9.4.1"
   },
   "devDependencies": {
     "@babel/core": "^7.4.5",
