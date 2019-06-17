@@ -1,5 +1,8 @@
 import { useReducer, useRef, useCallback, useEffect, useMemo } from 'react';
 import useKey from 'react-use/lib/useKey';
+import useVideo from 'react-use/lib/useVideo';
+
+module.exports.useVideo = useVideo;
 
 const DEFAULT_FPS = 24;
 
@@ -45,7 +48,7 @@ function getPlayerInitialFrameIndex(key) {
   }
 }
 
-export default function useCanvasScrubber({
+export function useCanvasScrubber({
   playerId = 'anni-player',
   fps = DEFAULT_FPS,
   frames = [],
