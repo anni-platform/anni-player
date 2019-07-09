@@ -23,6 +23,7 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
+    "media": "^0.2.1",
     "react": "^16.8.6",
     "react-use": "^9.4.1"
   },

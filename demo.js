@@ -4,11 +4,10 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { Router, Link } from '@reach/router';
 import { useCanvasScrubber, useVideo } from '.';
-import groundWorkFramesMap from 'image-sequence/the-groundwork/*.jpg';
-import magicFramesMap from 'image-sequence/magic/*.jpg';
-
-import tropicalWebm from './Tropical/WEBM/Tropical.webm';
-import tropicalMp4 from './Tropical/MP4/Tropical.mp4';
+import groundWorkFramesMap from './media/image-sequence/the-groundwork/*.jpg';
+import magicFramesMap from './media/image-sequence/magic/*.jpg';
+import tropicalWebm from './media/WEBM/Tropical.webm';
+import tropicalMp4 from './media/MP4/Tropical.mp4';
 
 const groundWorkFrames = Object.values(groundWorkFramesMap);
 const magicFrames = Object.values(magicFramesMap);
