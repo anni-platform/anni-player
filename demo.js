@@ -8,6 +8,7 @@ import groundWorkFramesMap from './media/image-sequence/the-groundwork/*.jpg';
 import magicFramesMap from './media/image-sequence/magic/*.jpg';
 import tropicalWebm from './media/WEBM/Tropical.webm';
 import tropicalMp4 from './media/MP4/Tropical.mp4';
+import gymnopedie from './media/gymnopedie.mp3';
 
 const groundWorkFrames = Object.values(groundWorkFramesMap);
 const magicFrames = Object.values(magicFramesMap);
@@ -30,8 +31,10 @@ const buttonStyle = {
   fontSize: 24,
 };
 
-function Player({ frames, playerId }) {
-  const { canvasRef, togglePlay, isPlaying } = useCanvasScrubber({
+function Player({ audioSrc, audioStartSeconds = 0, frames, playerId }) {
+  const { audio, canvasRef, togglePlay, isPlaying } = useCanvasScrubber({
+    audioSrc,
+    audioStartSeconds,
     frames,
     playerId,
   });
@@ -43,11 +46,15 @@ function Player({ frames, playerId }) {
         </button>
       </div>
       <canvas style={canvasStyle} ref={canvasRef} />
+      {audioSrc && audio.element}
+      <pre>{JSON.stringify(audio.state, null, 2)}</pre>
     </PlayerContainer>
   );
 }
 
 Player.propTypes = {
+  audioSrc: PropTypes.string,
+  audioStartSeconds: PropTypes.number,
   frames: PropTypes.arrayOf(PropTypes.string),
   playerId: PropTypes.string,
 };
@@ -97,7 +104,13 @@ function App() {
         <Link to="video">Video</Link>
       </nav>
       <Router basepath={process.env.BASE_PATH || '/'}>
-        <DemoA path="/" frames={groundWorkFrames} playerId="groundwork" />
+        <DemoA
+          path="/"
+          frames={groundWorkFrames}
+          playerId="groundwork"
+          audioSrc={gymnopedie}
+          audioStartSeconds={12}
+        />
         <DemoB path="magic" frames={magicFrames} playerId="magic" />
         <VideoDemo
           path="video"

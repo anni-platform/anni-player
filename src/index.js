@@ -1,5 +1,7 @@
 import { useReducer, useRef, useCallback, useEffect, useMemo } from 'react';
 import useKey from 'react-use/lib/useKey';
+import useAudio from 'react-use/lib/useAudio';
+import useEffectOnce from 'react-use/lib/useEffectOnce';
 
 export useVideo from 'react-use/lib/useVideo';
 
@@ -49,9 +51,12 @@ function getPlayerInitialFrameIndex(key) {
 
 export function useCanvasScrubber({
   playerId = 'anni-player',
+  audioSrc,
+  audioStartSeconds = 0,
   fps = DEFAULT_FPS,
   frames = [],
 }) {
+  const frameDurationSeconds = (frames.length - 1) / fps;
   const sortedFrames = useMemo(() => frames.sort(sortFramesAscending), [
     frames,
   ]);
@@ -66,6 +71,36 @@ export function useCanvasScrubber({
 
   const { isPlaying } = state;
 
+  const [audioElement, audioState, audioControls] = useAudio({
+    src: audioSrc,
+  });
+
+  const resetAudio = useCallback(() => {
+    audioControls.seek(audioStartSeconds);
+  }, [audioControls, audioStartSeconds]);
+
+  useEffect(() => {
+    if (isPlaying && !audioState.isPlaying) {
+      // audioControls.seek();
+      const seek = !currentFrame.current
+      ? audioStartSeconds
+      : ((currentFrame.current / frames.length) * frameDurationSeconds) + audioStartSeconds;
+      console.log('seek', seek);
+      audioControls.play();
+    } else if (!isPlaying && audioState.isPlaying) {
+      audioControls.pause();
+    }
+  }, [audioControls, currentFrame, isPlaying]);
+
+  useEffect(() => {
+    if (
+      currentFrame.current === 0
+      || audioState.time > frameDurationSeconds + audioStartSeconds
+    ) {
+      resetAudio();
+    }
+  }, [audioSrc, currentFrame, resetAudio, audioState, frameDurationSeconds]);
+
   const drawFrame = useCallback(
     index => {
       if (!sortedFrames[index] || !canvasRef.current) return;
@@ -79,7 +114,7 @@ export function useCanvasScrubber({
         .getContext('2d')
         .drawImage(frameImage, 0, 0, width, height, 0, 0, width, height);
     },
-    [sortedFrames, canvasRef, images],
+    [sortedFrames],
   );
 
   useEffect(() => {
@@ -122,8 +157,8 @@ export function useCanvasScrubber({
           // Mutate next frame
           const frameIndex = currentFrame.current;
           then = now;
-          currentFrame.current =
-            frameIndex === frames.length - 1 ? 0 : frameIndex + 1;
+          const isLastFrame = frameIndex === frames.length - 1;
+          currentFrame.current = isLastFrame ? 0 : frameIndex + 1;
 
           // Draw Canvas
           drawFrame(currentFrame.current);
@@ -144,7 +179,7 @@ export function useCanvasScrubber({
       }
       sessionStorage.setItem(playerId, currentFrame.current);
     };
-  }, [fps, frames, images, drawFrame, playerId, isPlaying]);
+  }, [fps, frames, images, drawFrame, playerId, isPlaying, resetAudio]);
 
   function togglePlay() {
     const nextIsPlaying =
@@ -182,5 +217,10 @@ export function useCanvasScrubber({
     canvasRef,
     togglePlay,
     sortedFrames,
+    audio: {
+      element: audioElement,
+      state: audioState,
+      controls: audioControls,
+    },
   };
 }
