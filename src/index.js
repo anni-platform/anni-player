@@ -1,8 +1,7 @@
 import { useReducer, useRef, useCallback, useEffect, useMemo } from 'react';
 import useKey from 'react-use/lib/useKey';
-import useVideo from 'react-use/lib/useVideo';
 
-module.exports.useVideo = useVideo;
+export useVideo from 'react-use/lib/useVideo';
 
 const DEFAULT_FPS = 24;
 
