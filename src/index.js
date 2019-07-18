@@ -50,6 +50,8 @@ function getPlayerInitialFrameIndex(key) {
 
 export function useCanvasScrubber({
   playerId = 'anni-player',
+  audioSrc,
+  audioStart = 0,
   fps = DEFAULT_FPS,
   frames = [],
 }) {
@@ -57,6 +59,7 @@ export function useCanvasScrubber({
     frames,
   ]);
   const images = useRef(null);
+  const audio = useRef(null);
   const currentFrame = useRef(getPlayerInitialFrameIndex(playerId));
   const nextTickRAF = useRef();
   const canvasRef = useRef(null);
@@ -65,7 +68,27 @@ export function useCanvasScrubber({
     htmlImageElements: [],
   });
 
+  if (!audio.current) {
+    const audioEl = document.createElement('audio');
+    audioEl.src = audioSrc;
+    audioEl.currentTime = audioStart;
+    audio.current = audioEl;
+  }
+
   const { isPlaying } = state;
+
+  const setAudioVolume = useCallback(
+    (volume = 0.75) => {
+      if (!audio.current) return;
+      audio.current.volume = volume;
+    },
+    [audio],
+  );
+
+  const toggleMuteAudio = useCallback(() => {
+    if (!audio.current) return;
+    audio.current.muted = !audio.current.muted;
+  }, [audio]);
 
   const drawFrame = useCallback(
     index => {
@@ -107,6 +130,23 @@ export function useCanvasScrubber({
   }, [frames, canvasRef, sortedFrames, drawFrame]);
 
   useEffect(() => {
+    if (!audio.current) return;
+
+    async function playAudio() {
+      await audio.current.play();
+    }
+    async function pause() {
+      await audio.current.pause();
+    }
+
+    if (isPlaying && audio.current.paused) {
+      playAudio();
+    } else if (!isPlaying && !audio.current.paused) {
+      pause();
+    }
+  }, [audio, isPlaying]);
+
+  useEffect(() => {
     if (isPlaying) {
       let then = performance.now();
       let now;
@@ -123,8 +163,12 @@ export function useCanvasScrubber({
           // Mutate next frame
           const frameIndex = currentFrame.current;
           then = now;
-          currentFrame.current =
+          const nextFrame =
             frameIndex === frames.length - 1 ? 0 : frameIndex + 1;
+          if (nextFrame === 0) {
+            audio.current.currentTime = audioStart;
+          }
+          currentFrame.current = nextFrame;
 
           // Draw Canvas
           drawFrame(currentFrame.current);
@@ -183,5 +227,8 @@ export function useCanvasScrubber({
     canvasRef,
     togglePlay,
     sortedFrames,
+    audio: audio.current,
+    toggleMuteAudio,
+    setAudioVolume,
   };
 }
