@@ -41,20 +41,38 @@ function Player({ frames, playerId, audioSrc, audioStart }) {
     volume,
     setAudioVolume,
     toggleMuteAudio,
+    loadingStatus,
   } = useCanvasScrubber({
     audioSrc,
     audioStart,
     frames,
     playerId,
   });
+  const isLoading = loadingStatus.totalLoaded !== loadingStatus.total;
+
   return (
     <PlayerContainer>
-      <div style={{ padding: '8px 0 8px' }}>
-        <button onClick={togglePlay} style={buttonStyle}>
-          <span className={`fa ${isPlaying ? 'fa-pause' : 'fa-play'}`} />
-        </button>
-      </div>
+      {isLoading ? (
+        <div>
+          Loading status:{' '}
+          <progress
+            id="file"
+            max="100"
+            value={(loadingStatus.totalLoaded / loadingStatus.total) * 100}
+          />
+        </div>
+      ) : (
+        <div>
+          <div style={{ padding: '8px 0 8px' }}>
+            <button onClick={togglePlay} style={buttonStyle}>
+              <span className={`fa ${isPlaying ? 'fa-pause' : 'fa-play'}`} />
+            </button>
+          </div>
+        </div>
+      )}
+
       <canvas style={canvasStyle} ref={canvasRef} />
+
       {audioSrc && isPlaying && (
         <div>
           <button onClick={toggleMuteAudio}>

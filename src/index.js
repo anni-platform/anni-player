@@ -68,6 +68,10 @@ export function useCanvasScrubber({
     isMuted: false,
     volume: 0.75,
     htmlImageElements: [],
+    loadingStatus: {
+      totalLoaded: 0,
+      total: frames.length,
+    },
   });
 
   if (!audio.current) {
@@ -114,8 +118,26 @@ export function useCanvasScrubber({
   useEffect(() => {
     if (!canvasRef.current) return;
     async function load() {
+      setState({
+        loadingStatus: {
+          total: sortedFrames.length,
+          totalLoaded: 0,
+        },
+      });
+
       const loadedImages = await Promise.all(
-        sortedFrames.map(f => preloadImagePromise(f)),
+        sortedFrames.map(async f => {
+          const loadedImage = await preloadImagePromise(f);
+          setState({
+            loadingStatus: {
+              ...state.loadingStatus,
+              totalLoaded: (state.loadingStatus.totalLoaded += 1),
+            },
+          });
+          return new Promise(resolve => {
+            resolve(loadedImage);
+          });
+        }),
       );
 
       if (!loadedImages || loadedImages.length === 0) return;
