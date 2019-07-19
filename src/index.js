@@ -65,6 +65,8 @@ export function useCanvasScrubber({
   const canvasRef = useRef(null);
   const [state, setState] = useReducer(reducer, {
     isPlaying: false,
+    isMuted: false,
+    volume: 0.75,
     htmlImageElements: [],
   });
 
@@ -80,6 +82,7 @@ export function useCanvasScrubber({
   const setAudioVolume = useCallback(
     (volume = 0.75) => {
       if (!audio.current) return;
+      setState({ volume });
       audio.current.volume = volume;
     },
     [audio],
@@ -87,7 +90,9 @@ export function useCanvasScrubber({
 
   const toggleMuteAudio = useCallback(() => {
     if (!audio.current) return;
-    audio.current.muted = !audio.current.muted;
+    const nextMuted = !audio.current.muted;
+    setState({ isMuted: nextMuted });
+    audio.current.muted = nextMuted;
   }, [audio]);
 
   const drawFrame = useCallback(
@@ -227,7 +232,6 @@ export function useCanvasScrubber({
     canvasRef,
     togglePlay,
     sortedFrames,
-    audio: audio.current,
     toggleMuteAudio,
     setAudioVolume,
   };

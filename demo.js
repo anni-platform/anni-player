@@ -37,7 +37,9 @@ function Player({ frames, playerId, audioSrc, audioStart }) {
     canvasRef,
     togglePlay,
     isPlaying,
-    audio,
+    isMuted,
+    volume,
+    setAudioVolume,
     toggleMuteAudio,
   } = useCanvasScrubber({
     audioSrc,
@@ -53,9 +55,25 @@ function Player({ frames, playerId, audioSrc, audioStart }) {
         </button>
       </div>
       <canvas style={canvasStyle} ref={canvasRef} />
-      <button onClick={toggleMuteAudio}>
-        {audio.muted ? 'unmute audio' : 'mute audio'}
-      </button>
+      {isPlaying && (
+        <div>
+          <button onClick={toggleMuteAudio}>
+            {isMuted ? 'unmute audio' : 'mute audio'}
+          </button>
+          <label>
+            volume
+            <input
+              type="range"
+              min="0"
+              max="1"
+              value={volume}
+              step="0.1"
+              onChange={({ target }) => setAudioVolume(+target.value)}
+            />
+            {volume}
+          </label>
+        </div>
+      )}
     </PlayerContainer>
   );
 }
