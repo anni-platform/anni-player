@@ -14,7 +14,7 @@
     "dev-demo": "parcel index.html",
     "dev-lib": "rollup -c -w",
     "build": "rollup -c",
-    "predeploy": "rimraf dist/* && npm run build && BASE_PATH=/anni-player parcel build index.html --public-url https://anni.io/anni-player",
+    "predeploy": "rimraf dist/* && npm run build && BASE_PATH=/anni-player parcel build index.html --public-url https://anni.io/anni-player/",
     "deploy": "gh-pages -d dist",
     "test": "jest",
     "lint": "eslint --fix src/* && echo 'Lint complete.'"

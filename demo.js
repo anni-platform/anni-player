@@ -125,13 +125,14 @@ function App() {
   return (
     <div>
       <nav>
-        <Link to="/">home</Link>&nbsp;
-        <Link to="magic">Magic</Link>
-        <Link to="video">Video</Link>
+        <Link to={process.env.BASE_PATH || '/'}>home</Link>&nbsp;
+        <Link to={`${process.env.BASE_PATH}/magic`}>Magic</Link>
+        <Link to={`${process.env.BASE_PATH}/video`}>Video</Link>
       </nav>
       <Router basepath={process.env.BASE_PATH || '/'}>
         <DemoA
-          path="/"
+          default
+          path={process.env.BASE_PATH || '/'}
           frames={groundWorkFrames}
           playerId="groundwork"
           audioSrc={gymnopedie}
@@ -139,7 +140,7 @@ function App() {
         />
         <DemoB path="magic" frames={magicFrames} playerId="magic" />
         <VideoDemo
-          path="video"
+          path={`${process.env.BASE_PATH || '/'}video}`}
           playerId="video"
           videoSource={[
             { src: tropicalWebm, type: 'video/webm' },

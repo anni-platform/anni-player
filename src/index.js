@@ -149,6 +149,10 @@ export function useCanvasScrubber({
     } else if (!isPlaying && !audio.current.paused) {
       pause();
     }
+
+    return function cleanupAudio() {
+      pause();
+    };
   }, [audio, isPlaying]);
 
   useEffect(() => {
