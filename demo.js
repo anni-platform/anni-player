@@ -55,7 +55,7 @@ function Player({ frames, playerId, audioSrc, audioStart }) {
         </button>
       </div>
       <canvas style={canvasStyle} ref={canvasRef} />
-      {isPlaying && (
+      {audioSrc && isPlaying && (
         <div>
           <button onClick={toggleMuteAudio}>
             {isMuted ? 'unmute audio' : 'mute audio'}
@@ -140,7 +140,7 @@ function App() {
         />
         <DemoB path="magic" frames={magicFrames} playerId="magic" />
         <VideoDemo
-          path={`${process.env.BASE_PATH || '/'}video}`}
+          path="video"
           playerId="video"
           videoSource={[
             { src: tropicalWebm, type: 'video/webm' },
