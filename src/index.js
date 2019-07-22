@@ -64,6 +64,7 @@ export function useCanvasScrubber({
   const nextTickRAF = useRef();
   const canvasRef = useRef(null);
   const [state, setState] = useReducer(reducer, {
+    currentFrame: currentFrame.current,
     isPlaying: false,
     isMuted: false,
     volume: 0.75,
@@ -72,6 +73,7 @@ export function useCanvasScrubber({
       totalLoaded: 0,
       total: frames.length,
     },
+    duration: frames.length / fps,
   });
 
   if (!audio.current) {
@@ -105,6 +107,7 @@ export function useCanvasScrubber({
 
       const frameImage = images.current[sortedFrames[index]];
       const { width, height } = frameImage;
+      setState({ currentFrame: index });
       const canvas = canvasRef.current;
       canvas.width = width;
       canvas.height = height;
@@ -167,13 +170,13 @@ export function useCanvasScrubber({
     }
 
     if (isPlaying && audio.current.paused) {
-      playAudio();
+      playAudio().catch(() => null);
     } else if (!isPlaying && !audio.current.paused) {
-      pause();
+      pause().catch(() => null);
     }
 
     return function cleanupAudio() {
-      pause();
+      pause().catch(() => null);
     };
   }, [audio, isPlaying]);
 
@@ -231,6 +234,11 @@ export function useCanvasScrubber({
   function seek(index) {
     setState({ isPlaying: false });
     currentFrame.current = index;
+
+    audio.current.currentTime = (
+      (index / frames.length) *
+      state.duration
+    ).toFixed(2);
     // Draw Canvas
     drawFrame(index);
   }
@@ -259,6 +267,7 @@ export function useCanvasScrubber({
     togglePlay,
     sortedFrames,
     toggleMuteAudio,
+    seek,
     setAudioVolume,
   };
 }

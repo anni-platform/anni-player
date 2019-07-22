@@ -35,13 +35,15 @@ const buttonStyle = {
 function Player({ frames, playerId, audioSrc, audioStart }) {
   const {
     canvasRef,
-    togglePlay,
+    currentFrame,
+    loadingStatus,
     isPlaying,
     isMuted,
-    volume,
+    seek,
     setAudioVolume,
+    togglePlay,
     toggleMuteAudio,
-    loadingStatus,
+    volume,
   } = useCanvasScrubber({
     audioSrc,
     audioStart,
@@ -67,6 +69,13 @@ function Player({ frames, playerId, audioSrc, audioStart }) {
             <button onClick={togglePlay} style={buttonStyle}>
               <span className={`fa ${isPlaying ? 'fa-pause' : 'fa-play'}`} />
             </button>
+            <input
+              type="range"
+              min="0"
+              max={frames.length}
+              value={currentFrame}
+              onChange={({ target }) => seek(+target.value)}
+            />
           </div>
         </div>
       )}
@@ -144,8 +153,8 @@ function App() {
     <div>
       <nav>
         <Link to={process.env.BASE_PATH || '/'}>home</Link>&nbsp;
-        <Link to={`${process.env.BASE_PATH}/magic`}>Magic</Link>
-        <Link to={`${process.env.BASE_PATH}/video`}>Video</Link>
+        <Link to={`${process.env.BASE_PATH || ''}/magic`}>Magic</Link>
+        <Link to={`${process.env.BASE_PATH || ''}/video`}>Video</Link>
       </nav>
       <Router basepath={process.env.BASE_PATH || '/'}>
         <DemoA
