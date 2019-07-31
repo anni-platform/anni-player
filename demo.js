@@ -36,6 +36,7 @@ function Player({ frames, playerId, audioSrc, audioStart }) {
   const {
     canvasRef,
     currentFrame,
+    getPlayPauseButtonProps,
     loadingStatus,
     isPlaying,
     isMuted,
@@ -66,7 +67,7 @@ function Player({ frames, playerId, audioSrc, audioStart }) {
       ) : (
         <div>
           <div style={{ padding: '8px 0 8px' }}>
-            <button onClick={togglePlay} style={buttonStyle}>
+            <button style={buttonStyle} {...getPlayPauseButtonProps()}>
               <span className={`fa ${isPlaying ? 'fa-pause' : 'fa-play'}`} />
             </button>
             <input

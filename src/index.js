@@ -63,6 +63,7 @@ export function useCanvasScrubber({
   const canvasRef = useRef(null);
   const [state, setState] = useReducer(reducer, {
     currentFrame: currentFrame.current,
+    disableKeyboardEventHandlers: false,
     isPlaying: false,
     isMuted: false,
     volume: 0.75,
@@ -80,8 +81,6 @@ export function useCanvasScrubber({
     audioEl.currentTime = audioStart;
     audio.current = audioEl;
   }
-
-  const { isPlaying } = state;
 
   const setAudioVolume = useCallback(
     (volume = 0.75) => {
@@ -117,7 +116,9 @@ export function useCanvasScrubber({
   );
 
   useEffect(() => {
-    if (!canvasRef.current) return;
+    // Preload images and draw the first frame
+    if (!canvasRef.current || state.loadingStatus.totalLoaded === frames.length)
+      return;
     async function load() {
       setState({
         loadingStatus: {
@@ -155,6 +156,7 @@ export function useCanvasScrubber({
       drawFrame(currentFrame.current);
     }
     load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [frames, canvasRef, sortedFrames, drawFrame]);
 
   useEffect(() => {
@@ -167,25 +169,35 @@ export function useCanvasScrubber({
       await audio.current.pause();
     }
 
-    if (isPlaying && audio.current.paused) {
+    if (state.isPlaying && audio.current.paused) {
       playAudio().catch(() => null);
-    } else if (!isPlaying && !audio.current.paused) {
+    } else if (!state.isPlaying && !audio.current.paused) {
       pause().catch(() => null);
     }
 
     return function cleanupAudio() {
       pause().catch(() => null);
     };
-  }, [audio, isPlaying]);
+  }, [audio, state.isPlaying]);
 
   useEffect(() => {
-    if (isPlaying) {
+    if (!state.isPlaying) {
+      cancelAnimationFrame(nextTickRAF.current);
+    }
+  }, [state.isPlaying]);
+
+  useEffect(() => {
+    // Animation loop
+    if (state.isPlaying) {
       let then = performance.now();
       let now;
       let delta;
 
       const nextTick = () => {
-        if (!isPlaying) return;
+        if (!state.isPlaying) {
+          cancelAnimationFrame(nextTickRAF.current);
+          return;
+        }
 
         now = performance.now();
         delta = now - then;
@@ -221,12 +233,12 @@ export function useCanvasScrubber({
       }
       sessionStorage.setItem(playerId, currentFrame.current);
     };
-  }, [fps, frames, images, drawFrame, playerId, isPlaying]);
+  }, [audioStart, fps, frames, images, drawFrame, playerId, state]);
 
   function togglePlay() {
-    const nextIsPlaying =
-      images.current && Object.keys(images.current).length > 0 && !isPlaying;
-    setState({ isPlaying: nextIsPlaying });
+    if (!images.current || Object.keys(images.current).length === 0) return;
+
+    setState({ isPlaying: !state.isPlaying });
   }
 
   function seek(index) {
@@ -255,13 +267,34 @@ export function useCanvasScrubber({
     seek(nextIndex);
   }
 
-  useKey(e => e.code === 'Space', togglePlay);
-  useKey(e => e.code === 'ArrowRight', seekNext);
-  useKey(e => e.code === 'ArrowLeft', seekPrev);
+  function getPlayPauseButtonProps() {
+    return {
+      onFocus: () => {
+        setState({ disableKeyboardEventHandlers: true });
+      },
+      onBlur: () => {
+        setState({ disableKeyboardEventHandlers: false });
+      },
+      onClick: togglePlay,
+    };
+  }
+
+  function callKeyHandlerIfEnabled(cb) {
+    return function() {
+      if (!state.disableKeyboardEventHandlers) {
+        cb();
+      }
+    };
+  }
+
+  useKey(e => e.code === 'Space', callKeyHandlerIfEnabled(togglePlay));
+  useKey(e => e.code === 'ArrowRight', callKeyHandlerIfEnabled(seekNext));
+  useKey(e => e.code === 'ArrowLeft', callKeyHandlerIfEnabled(seekPrev));
 
   return {
     ...state,
     canvasRef,
+    getPlayPauseButtonProps,
     togglePlay,
     sortedFrames,
     toggleMuteAudio,

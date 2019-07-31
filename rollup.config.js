@@ -1,5 +1,6 @@
 import babel from 'rollup-plugin-babel';
 import { terser } from 'rollup-plugin-terser';
+import peerDepsExternal from 'rollup-plugin-peer-deps-external';
 
 const config = {
   external: ['react'],
@@ -13,7 +14,7 @@ const config = {
     },
     exports: 'named',
   },
-  plugins: [babel(), terser()],
+  plugins: [peerDepsExternal(), babel(), terser()],
 };
 
 export default [
